@@ -43,8 +43,12 @@ const Data_ListPost = [
 
 const AllPostsScreen = () => {
   const [inputText, setInputText] = useState("");
-  const [posts, setPosts] = useState(Data_ListPost);
-  const [nextId, setNextId] = useState(Data_ListPost.length + 1); // Sử dụng biến đếm để theo dõi idUser tiếp theo
+  const [posts, setPosts] = useState(
+    Data_ListPost.map((post) => ({ ...post, isCommenting: false }))
+  );
+  const [nextId, setNextId] = useState(Data_ListPost.length + 1);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState("");
 
   const handlePost = () => {
     if (inputText.trim() === "") {
@@ -52,18 +56,18 @@ const AllPostsScreen = () => {
     }
 
     const newUserPost = {
-      idUser: nextId, // Sử dụng giá trị của nextId làm idUser
+      idUser: nextId,
       user: {
         name: "Admin",
         image: require("../assets/homeavatar.png"),
       },
       content: inputText,
       heart: false,
+      isCommenting: false,
     };
 
-    // Cập nhật danh sách bài viết hiện có và tăng giá trị nextId
     setPosts((prevPosts) => [newUserPost, ...prevPosts]);
-    setNextId(nextId + 1); // Tăng giá trị nextId
+    setNextId(nextId + 1);
 
     setInputText("");
   };
@@ -78,6 +82,31 @@ const AllPostsScreen = () => {
     });
 
     setPosts(updatedPosts);
+  };
+
+  const toggleComment = (post) => {
+    const updatedPosts = posts.map((p) => {
+      if (p.idUser === post.idUser && p.content === post.content) {
+        return { ...p, isCommenting: !p.isCommenting };
+      } else {
+        return p;
+      }
+    });
+
+    setPosts(updatedPosts);
+  };
+
+  const commentsForPost = (post) => {
+    return comments.filter((comment) => comment.postId === post.idUser);
+  };
+
+  const handleComment = (postId, text) => {
+    const newComment = {
+      postId,
+      text,
+    };
+
+    setComments((prevComments) => [...prevComments, newComment]);
   };
 
   return (
@@ -106,37 +135,74 @@ const AllPostsScreen = () => {
               <Image source={userPost.user.image} style={styles.imageUser} />
               <Text style={styles.userName}>{userPost.user.name}</Text>
             </View>
-            <FlatList
-              data={posts.filter((post) => post.idUser === userPost.idUser)}
-              renderItem={({ item: post }) => (
-                <View style={styles.cell}>
-                  <Text>{post.content}</Text>
-                  <View style={styles.horizontalIcon}>
-                    <TouchableOpacity
-                      style={styles.spacingIconHert}
-                      onPress={() => toggleHeart(post)}
-                    >
-                      {post.heart ? (
-                        <Ionicons name="ios-heart" size={32} color="red" />
-                      ) : (
-                        <Ionicons
-                          name="ios-heart-outline"
-                          size={32}
-                          color="black"
+            <View style={styles.cell}>
+              <Text>{userPost.content}</Text>
+              <View style={styles.horizontalIcon}>
+                <TouchableOpacity
+                  style={styles.spacingIconHert}
+                  onPress={() => toggleHeart(userPost)}
+                >
+                  {userPost.heart ? (
+                    <Ionicons name="ios-heart" size={32} color="red" />
+                  ) : (
+                    <Ionicons
+                      name="ios-heart-outline"
+                      size={32}
+                      color="black"
+                    />
+                  )}
+                  <Text>Thích</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.spacingIconComment}
+                  onPress={() => toggleComment(userPost)}
+                >
+                  <Ionicons
+                    name="chatbox-ellipses-outline"
+                    size={32}
+                    color="black"
+                  />
+                  <Text>Bình luận</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.spacingIconShare}>
+                  <Ionicons name="arrow-redo-outline" size={32} color="black" />
+                  <Text>Chia sẻ</Text>
+                </TouchableOpacity>
+              </View>
+              {userPost.isCommenting && (
+                <View style={styles.commentSection}>
+                  <FlatList
+                    data={commentsForPost(userPost)}
+                    renderItem={({ item: comment }) => (
+                      <View style={styles.horizontalViewComment}>
+                        <Image
+                          source={userPost.user.image}
+                          style={styles.imageUser}
                         />
-                      )}
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.spacingIconShare}>
-                      <Ionicons
-                        name="arrow-redo-outline"
-                        size={32}
-                        color="black"
-                      />
-                    </TouchableOpacity>
-                  </View>
+                        <View style={styles.verticalViewComment}>
+                          <Text style={styles.userNameComment}>
+                            {userPost.user.name}
+                          </Text>
+                          <View style={styles.commentItem}>
+                            <Text>{comment.text}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    )}
+                  />
+                  <TextInput
+                    placeholder="Nhập bình luận..."
+                    style={styles.commentInput}
+                    value={commentText}
+                    onChangeText={(text) => setCommentText(text)}
+                    onSubmitEditing={() => {
+                      handleComment(userPost.idUser, commentText);
+                      setCommentText("");
+                    }}
+                  />
                 </View>
               )}
-            />
+            </View>
           </View>
         )}
         keyExtractor={(item, index) => index.toString()}
@@ -163,15 +229,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     margin: 20,
   },
+  horizontalViewComment: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    backgroundColor: "white",
+    marginTop: 20,
+    padding: 10,
+    borderRadius: 10,
+  },
   horizontalIcon: {
     flexDirection: "row",
     letterSpacing: 10,
     position: "relative",
     marginTop: 30,
+    alignItems: "center",
+    justifyContent: "center",
   },
   verticalView: {
     flexDirection: "column",
     margin: 10,
+  },
+  verticalViewComment: {
+    flexDirection: "column",
+    marginLeft: 10,
   },
   imageUser: {
     width: 40,
@@ -180,6 +260,10 @@ const styles = StyleSheet.create({
   userName: {
     marginLeft: 10,
     fontSize: 20,
+  },
+  userNameComment: {
+    marginLeft: 10,
+    fontSize: 14,
   },
   postContainer: {
     flexDirection: "row",
@@ -198,10 +282,45 @@ const styles = StyleSheet.create({
     color: "blue",
     fontSize: 16,
   },
-  spacingIconHert: {},
+  spacingIconHert: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 25,
+  },
+  spacingIconComment: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 25,
+    marginRight: 25,
+  },
   spacingIconShare: {
-    position: "absolute",
-    right: 30,
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 25,
+  },
+  commentSection: {
+    backgroundColor: "#f2f2f2",
+    padding: 10,
+    marginVertical: 10,
+    borderRadius: 10,
+  },
+  commentInput: {
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 5,
+    height: 40,
+    borderRadius: 10,
+    marginTop: 20,
+  },
+  commentItem: {
+    backgroundColor: "#DCDCDC",
+    marginVertical: 5,
+    padding: 5,
+    borderColor: "#ddd",
+    borderWidth: 1,
+    borderRadius: 10,
+    width: 250,
   },
 });
 

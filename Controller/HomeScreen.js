@@ -16,7 +16,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 const Tab = createBottomTabNavigator();
 
-const HomeScreen = ({}) => {
+const HomeScreen = ({ navigation }) => {
   return (
     <NavigationContainer independent={true}>
       <Tab.Navigator
@@ -82,13 +82,14 @@ const HomeScreen = ({}) => {
         />
         <Tab.Screen
           name="SetingScreen"
-          component={SetingScreen}
           options={{
             headerShown: true,
             tabBarLabel: "Cài Đặt",
             title: "Tài khoản",
           }}
-        />
+        >
+          {(props) => <SetingScreen {...props} navigation={navigation} />}
+        </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>
   );

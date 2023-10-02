@@ -6,40 +6,34 @@ import {
   FlatList,
   StyleSheet,
   Image,
-  TouchableOpacity,
 } from "react-native";
 
 const UserProfile = {
-  name: "John Doe",
+  name: "Khánh Pro Vip",
   image: require("../assets/homeavatar.png"),
 };
 
-const Data_Following = [
+const Data_Posts = [
   {
-    idUser: 1,
+    id: 1,
     user: {
-      name: "User1",
+      name: "Admin",
       image: require("../assets/homeavatar.png"),
     },
+    content: "kekeekekkeke",
   },
   {
-    idUser: 2,
+    id: 1,
     user: {
-      name: "User2",
+      name: "Admin",
       image: require("../assets/homeavatar.png"),
     },
-  },
-  {
-    idUser: 3,
-    user: {
-      name: "User3",
-      image: require("../assets/homeavatar.png"),
-    },
+    content: "Keeekakakaka",
   },
 ];
 
 const UserProfileScreen = () => {
-  const [followingList, setFollowingList] = useState(Data_Following);
+  const [postList, setPostList] = useState(Data_Posts);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -48,22 +42,14 @@ const UserProfileScreen = () => {
         <Text style={styles.userName}>{UserProfile.name}</Text>
       </View>
       <FlatList
-        data={followingList}
-        renderItem={({ item: followingUser }) => (
-          <View style={styles.userCell}>
+        data={postList}
+        renderItem={({ item: post }) => (
+          <View style={styles.postContainer}>
             <View style={styles.horizontalView}>
-              <Image
-                source={followingUser.user.image}
-                style={styles.imageUser}
-              />
-              <Text style={styles.userName}>{followingUser.user.name}</Text>
+              <Image source={post.user.image} style={styles.imageUser} />
+              <Text style={styles.userName}>{post.user.name}</Text>
             </View>
-            <TouchableOpacity
-              style={styles.followButton}
-              onPress={() => toggleFollowing(followingUser.user.idUser)}
-            >
-              <Text style={styles.followButtonText}>Theo dõi</Text>
-            </TouchableOpacity>
+            <Text style={styles.postContent}>{post.content}</Text>
           </View>
         )}
         keyExtractor={(item, index) => index.toString()}
@@ -75,10 +61,9 @@ const UserProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
   },
   userProfile: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
@@ -93,11 +78,16 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     fontSize: 24,
   },
-  userCell: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    margin: 16,
+  postContainer: {
+    marginLeft: 20,
+    marginRight: 20,
+    marginTop: 10,
+    marginBottom: 10,
+    backgroundColor: "white",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    borderRadius: 10,
   },
   horizontalView: {
     flexDirection: "row",
@@ -108,15 +98,10 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
-  followButton: {
-    backgroundColor: "blue",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-  },
-  followButtonText: {
-    color: "white",
+  postContent: {
+    marginTop: 8,
     fontSize: 16,
+    borderRadius: 10,
   },
 });
 

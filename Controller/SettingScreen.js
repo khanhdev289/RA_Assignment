@@ -14,8 +14,8 @@ const UserProfile = {
   image: require("../assets/homeavatar.png"),
 };
 
-const SettingsScreen = ({}) => {
-  const navigation = useNavigation();
+const SettingsScreen = ({ navigation }) => {
+  // const navigation = useNavigation();
   const handleLogout = () => {
     navigation.navigate("Login");
   };

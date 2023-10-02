@@ -9,6 +9,7 @@ import {
   Image,
   TextInput,
 } from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const Data_Following = [
   {
@@ -39,11 +40,11 @@ const Data_Following = [
 
 const ListUserFollowingScreen = () => {
   const [followingList, setFollowingList] = useState(Data_Following);
+  const [searchText, setSearchText] = useState("");
 
   const toggleFollowing = (userId) => {
     const updatedFollowingList = followingList.map((user) => {
-      if (user.user.idUser === userId) {
-        // So sánh trực tiếp với userId
+      if (user.idUser === userId.idUser) {
         return {
           ...user,
           isFollowing: !user.isFollowing,
@@ -54,11 +55,20 @@ const ListUserFollowingScreen = () => {
 
     setFollowingList(updatedFollowingList);
   };
+  const filteredFollowingList = followingList.filter((user) =>
+    user.user.name.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   return (
     <SafeAreaView style={styles.container}>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Tìm kiếm..."
+        value={searchText}
+        onChangeText={(text) => setSearchText(text)}
+      />
       <FlatList
-        data={followingList}
+        data={filteredFollowingList}
         renderItem={({ item: followingUser }) => (
           <View style={styles.userCell}>
             <View style={styles.horizontalView}>
@@ -75,11 +85,17 @@ const ListUserFollowingScreen = () => {
                   backgroundColor: followingUser.isFollowing ? "gray" : "green",
                 },
               ]}
-              onPress={() => toggleFollowing(followingUser.user.idUser)}
+              onPress={() => toggleFollowing(followingUser)}
             >
-              <Text style={styles.followButtonText}>
-                {followingUser.isFollowing ? "Đã theo dõi" : "Theo dõi"}
-              </Text>
+              <Ionicons
+                name={
+                  followingUser.isFollowing
+                    ? "person-outline"
+                    : "person-add-outline"
+                }
+                size={24}
+                color="white"
+              />
             </TouchableOpacity>
           </View>
         )}
@@ -92,6 +108,12 @@ const ListUserFollowingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  searchInput: {
+    padding: 10,
+    margin: 10,
+    backgroundColor: "#ddd",
+    borderRadius: 10,
   },
   userCell: {
     backgroundColor: "white",
