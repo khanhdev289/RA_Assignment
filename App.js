@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "./Controller/LoginScreen";
 import HomeScreen from "./Controller/HomeScreen";
 import RegisterScreen from "./Controller/RegisterScreen";
-import UserProfileScreen from "./Controller/UserProfileScreen";
+import WebViewScreen from "./Controller/WebViewScreen";
 import SettingsScreen from "./Controller/SettingScreen";
 
 const Stack = createNativeStackNavigator();
@@ -30,8 +30,8 @@ export default function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Profile"
-          component={UserProfileScreen}
+          name="WebView"
+          component={WebViewScreen}
           options={{ headerShown: true }}
         />
       </Stack.Navigator>

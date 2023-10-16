@@ -1,4 +1,3 @@
-import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
   View,
@@ -7,18 +6,54 @@ import {
   Button,
   ImageBackground,
   StyleSheet,
-  Image,
   TouchableOpacity,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const LoginScreen = () => {
-  const navigation = useNavigation();
+const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    navigation.navigate("Home");
+  const handleLogin = async () => {
+    try {
+      const response = await fetch(
+        "https://6526ac93917d673fd76cc515.mockapi.io/api/users?username=" +
+          username,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        const userData = await response.json();
+        if (userData.length === 1 && userData[0].password === password) {
+          const idUser = userData[0].idUser;
+          const userRole = userData[0].role;
+          const userImage = userData[0].avatar;
+          const userListFollow = userData[0].listfollow;
+          const userListFollowString = JSON.stringify(userListFollow);
+          console.log(userData);
+          AsyncStorage.setItem("idUser", idUser);
+          AsyncStorage.setItem("userName", username);
+          AsyncStorage.setItem("userRole", userRole);
+          AsyncStorage.setItem("userAvatar", userImage);
+          AsyncStorage.setItem("userListFollow", userListFollowString);
+          navigation.navigate("Home");
+        } else {
+          alert("Tên đăng nhập hoặc mật khẩu không đúng.");
+        }
+      } else {
+        alert("Tên đăng nhập hoặc mật khẩu không đúng.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi đăng nhập: ", error);
+      alert("Có lỗi xảy ra khi đăng nhập.");
+    }
   };
+
   const tapToRegister = () => {
     navigation.navigate("Register");
   };
@@ -84,12 +119,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: "white",
     borderRadius: 10,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 10,
   },
   button: {
     width: 150,

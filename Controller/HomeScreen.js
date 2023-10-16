@@ -46,13 +46,15 @@ const HomeScreen = ({ navigation }) => {
       >
         <Tab.Screen
           name="AllPostsScreen"
-          component={AllPostsScreen}
+          // component={AllPostsScreen}
           options={{
-            headerShown: true,
+            headerShown: false,
             tabBarLabel: "Trang Chủ",
             title: "Tất cả bài viết",
           }}
-        />
+        >
+          {(props) => <AllPostsScreen {...props} navigation={navigation} />}
+        </Tab.Screen>
         <Tab.Screen
           name="FollowingPostsScreen"
           component={FollowingPostsScreen}
@@ -68,7 +70,7 @@ const HomeScreen = ({ navigation }) => {
           options={{
             headerShown: true,
             tabBarLabel: "Bạn Bè",
-            title: "Danh sách bạn bè",
+            title: "Danh sách người dùng",
           }}
         />
         <Tab.Screen

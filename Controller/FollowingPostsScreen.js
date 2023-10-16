@@ -1,105 +1,160 @@
-import React, { useState, useEffect } from "react";
+import React, { Component, useEffect, useState } from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   FlatList,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   Image,
+  Share,
 } from "react-native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import axios from "axios";
 
-const Data_Following = [
-  {
-    idUser: 3,
-    user: {
-      name: "User1",
-      image: require("../assets/homeavatar.png"),
-    },
-    isFollowing: false,
-  },
-  {
-    idUser: 4,
-    user: {
-      name: "User2",
-      image: require("../assets/homeavatar.png"),
-    },
-    isFollowing: false,
-  },
-  {
-    idUser: 5,
-    user: {
-      name: "User3",
-      image: require("../assets/homeavatar.png"),
-    },
-    isFollowing: false,
-  },
-];
+const POSTS_API_URL = "https://6526ac93917d673fd76cc515.mockapi.io/api/post";
+const USERS_API_URL = "https://6526ac93917d673fd76cc515.mockapi.io/api/users";
 
-const Data_ListPost = [
-  {
-    idUser: 3,
-    user: {
-      name: "User1",
-      image: require("../assets/homeavatar.png"),
-    },
-    content: "Bài viết 1 của User1",
-  },
-  {
-    idUser: 4,
-    user: {
-      name: "User2",
-      image: require("../assets/homeavatar.png"),
-    },
-    content: "Bài viết 1 của User2",
-  },
-  {
-    idUser: 5,
-    user: {
-      name: "User3",
-      image: require("../assets/homeavatar.png"),
-    },
-    content: "Bài viết 1 của User3",
-  },
-];
-
-const ListUserFollowingScreen = () => {
-  const [followingList, setFollowingList] = useState(Data_Following);
-  const [userPosts, setUserPosts] = useState([]);
+function FollowingPostsScreen() {
+  const [posts, setPosts] = useState([]);
+  const [idUser, setIdUser] = useState("");
 
   useEffect(() => {
-    // Lọc danh sách người theo dõi
-    const followedUsers = followingList.filter((user) => user.isFollowing);
+    const CloneData = async () => {
+      try {
+        const userID = await AsyncStorage.getItem("idUser");
+        if (userID) {
+          setIdUser(userID);
+        }
+        const response = await axios.get(POSTS_API_URL);
+        const response1 = await axios.get(USERS_API_URL);
 
-    // Lọc bài viết của những người theo dõi
-    const postsOfFollowedUsers = Data_ListPost.filter((post) =>
-      followedUsers.some((user) => user.idUser === post.idUser)
-    );
+        const currentUser = response1.data.find(
+          (user) => user.idUser === userID
+        );
 
-    setUserPosts(postsOfFollowedUsers);
-  }, [followingList]);
+        if (currentUser) {
+          const followingIDs = currentUser.listfollow;
+          const filteredData = response.data.filter((item) =>
+            followingIDs.includes(item.idUser)
+          );
+          setPosts(filteredData);
+        }
+      } catch (error) {
+        console.error("Lỗi " + error);
+      }
+    };
+
+    CloneData();
+  }, []);
+  const onShare = async () => {
+    try {
+      const result = await Share.share({
+        message: "Share on facebook",
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+        } else {
+        }
+      } else if (result.action === Share.dismissedAction) {
+      }
+    } catch (error) {
+      Alert.alert(error.message);
+    }
+  };
+  const toggleHeart = async () => {
+    alert("Không thể bấm vào đây");
+  };
+  const toggleComment = async () => {
+    alert("Không thể bấm vào đây");
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{ width: "100%", height: 740 }}>
       <FlatList
-        data={userPosts}
-        renderItem={({ item: userPost }) => (
-          <View style={styles.userCell}>
-            <View style={styles.horizontalView}>
-              <Image source={userPost.user.image} style={styles.imageUser} />
-              <Text style={styles.userName}>{userPost.user.name}</Text>
-            </View>
-            <View style={styles.postContent}>
-              <Text>{userPost.content}</Text>
-            </View>
-          </View>
-        )}
-        keyExtractor={(item, index) => index.toString()}
-      />
-    </SafeAreaView>
-  );
-};
+        data={posts}
+        renderItem={({ item: userPost }) => {
+          const isLiked = userPost.likedBy.includes(idUser);
+          return (
+            <View style={styles.userCell}>
+              <View style={styles.horizontalView}>
+                <Image
+                  source={{ uri: userPost.image }}
+                  style={styles.imageUser}
+                />
+                <Text style={styles.userName}>{userPost.name}</Text>
 
+                <View
+                  style={{
+                    top: 0,
+                    right: 0,
+                    position: "absolute",
+                    flexDirection: "row",
+                  }}
+                ></View>
+              </View>
+              <View style={styles.cell}>
+                <Text>{userPost.content}</Text>
+                {userPost.imagePost != null ? (
+                  <Image
+                    source={{ uri: userPost.imagePost }}
+                    style={{
+                      width: "100%",
+                      height: 250,
+                      marginTop: 10,
+                    }}
+                  />
+                ) : null}
+                <View style={styles.horizontalIcon}>
+                  <TouchableOpacity
+                    style={[styles.spacingIconHert]}
+                    onPress={() => toggleHeart(userPost.idPost)}
+                  >
+                    {isLiked ? (
+                      <Ionicons name="ios-heart" size={32} color="red" />
+                    ) : (
+                      <Ionicons
+                        name="ios-heart-outline"
+                        size={32}
+                        color="black"
+                      />
+                    )}
+                    <Text>Thích ({userPost.likedBy.length})</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.spacingIconComment}
+                    onPress={() => toggleComment()}
+                  >
+                    <Ionicons
+                      name="chatbox-ellipses-outline"
+                      size={32}
+                      color="black"
+                    />
+                    <Text>Bình luận</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.spacingIconShare}
+                    onPress={onShare}
+                  >
+                    <Ionicons
+                      name="arrow-redo-outline"
+                      size={32}
+                      color="black"
+                    />
+                    <Text>Chia sẻ</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          );
+        }}
+      />
+    </View>
+  );
+}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -108,27 +163,50 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     margin: 10,
     borderRadius: 20,
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 10,
   },
   horizontalView: {
     flexDirection: "row",
-    alignItems: "center",
+    margin: 20,
   },
   imageUser: {
     width: 40,
     height: 40,
-    marginRight: 10,
+    borderRadius: "50%",
   },
   userName: {
+    marginLeft: 10,
     fontSize: 20,
-    fontWeight: "bold",
+    alignItems: "center",
   },
-  postContent: {
-    marginTop: 10,
+  cell: {
+    backgroundColor: "white",
+    margin: 10,
+    paddingLeft: 10,
+  },
+  horizontalIcon: {
+    flexDirection: "row",
+    letterSpacing: 10,
+    position: "relative",
+    marginTop: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  spacingIconHert: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 25,
+  },
+  spacingIconComment: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 25,
+    marginRight: 25,
+  },
+  spacingIconShare: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 20,
   },
 });
 
-export default ListUserFollowingScreen;
+export default FollowingPostsScreen;
